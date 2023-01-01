@@ -1,4 +1,4 @@
-package com.nemo.expense.database;
+package com.nemo.expense.database.util;
 
 import org.bson.conversions.Bson;
 

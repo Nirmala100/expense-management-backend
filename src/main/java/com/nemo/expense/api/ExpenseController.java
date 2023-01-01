@@ -1,29 +1,25 @@
 package com.nemo.expense.api;
 
-import com.nemo.expense.api.model.CreateCategoryOutput;
 import com.nemo.expense.api.model.CreateExpenseInput;
 import com.nemo.expense.api.model.CreateExpenseOutput;
-import com.nemo.expense.api.model.ExpenseSearch;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
-import com.nemo.expense.database.Database;
 import com.nemo.expense.database.ExpenseDatabase;
-import com.nemo.expense.database.ExpenseFilter;
+import com.nemo.expense.database.util.ExpenseFilter;
 import com.nemo.expense.database.model.ExpenseModel;
 import com.nemo.expense.database.model.UserModel;
 import io.javalin.http.Context;
-import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 
-
-import java.util.List;
+import javax.inject.Inject;
 import java.util.UUID;
 
 public class ExpenseController {
     private final ExpenseDatabase dbModel;
 
-    public ExpenseController(Database database) {
-        this.dbModel = new ExpenseDatabase(database.getExpenseCollection());
+    @Inject
+    public ExpenseController(ExpenseDatabase expenseDb) {
+        this.dbModel = expenseDb;
     }
 
     public void createExpense(@NotNull Context ctx) {
@@ -51,7 +47,8 @@ public class ExpenseController {
         } catch (AlreadyExistException e) {
             CreateExpenseOutput output = new CreateExpenseOutput();
             output.setError("Expense already exist");
-            ctx.status(409).json(output);
+           // throw e;
+           ctx.status(409).json(output);
 
         }
     }

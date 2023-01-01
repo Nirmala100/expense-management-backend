@@ -1,25 +1,15 @@
 package com.nemo.expense.api.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class UserOutput {
     private String email;
     private String error;
-    public UserOutput() {
-
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getError() {
-        return error;
-    }
 }

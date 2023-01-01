@@ -16,7 +16,6 @@ dependencies {
     implementation 'org.mongodb:mongo-java-driver:3.12.11'
 
     implementation 'io.javalin:javalin:5.2.0'
-    implementation 'com.google.code.gson:gson:2.10'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
 
     // Logging
@@ -24,9 +23,20 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0'
 
+    // Dependency injection
+    implementation 'com.google.dagger:dagger:2.16'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.16'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
     // Test
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
+    testImplementation 'org.mockito:mockito-core:4.10.0'
+    // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+    testImplementation 'org.mockito:mockito-junit-jupiter:4.10.0'
 }
 
 test {

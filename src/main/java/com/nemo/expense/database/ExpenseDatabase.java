@@ -5,19 +5,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
-import com.nemo.expense.database.model.CategoryModel;
 import com.nemo.expense.database.model.ExpenseModel;
+import com.nemo.expense.database.util.ExpenseFilter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gte;
-import static com.mongodb.client.model.Filters.lt;
-import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.regex;
 
 public class ExpenseDatabase {
@@ -40,7 +36,7 @@ public class ExpenseDatabase {
             mongoCollection.insertOne(expenseModel);
             System.out.println("Successfully written to database");
          } else {
-        throw new AlreadyExistException(String.format("Expense already exist"));
+            throw new AlreadyExistException(String.format("Expense already exist"));
         }
     }
 

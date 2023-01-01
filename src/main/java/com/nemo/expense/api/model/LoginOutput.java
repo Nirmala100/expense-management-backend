@@ -1,25 +1,15 @@
 package com.nemo.expense.api.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class LoginOutput {
     private  String token;
     private String error;
-
-    public LoginOutput(String token) {
-        this.token = token;
-    }
-    public LoginOutput(){
-
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
 }

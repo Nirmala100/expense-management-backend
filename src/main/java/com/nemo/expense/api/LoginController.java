@@ -1,11 +1,11 @@
 package com.nemo.expense.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nemo.expense.api.model.LoginOutput;
 import com.nemo.expense.api.model.UserInput;
 import com.nemo.expense.api.model.UserOutput;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
-import com.nemo.expense.database.Database;
 import com.nemo.expense.database.UserDatabase;
 import com.nemo.expense.database.model.UserModel;
 import com.nemo.jwt.Token;
@@ -13,6 +13,7 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 
+import javax.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -22,8 +23,9 @@ public class LoginController {
     private static final String BEARER_PREFIX = "Bearer ";
     private final UserDatabase userDb;
 
-    public LoginController(Database database) {
-        userDb = new UserDatabase(database.getUserCollection());
+    @Inject
+    public LoginController(UserDatabase userDb) {
+        this.userDb = userDb;
     }
 
     public void createUser(@NotNull Context ctx) {
@@ -73,30 +75,36 @@ public class LoginController {
             token.addPayload("aud", user.getName());
             token.addPayload("email", user.getEmail());
             String generatedToken = token.encode();
-            LoginOutput output = new LoginOutput(generatedToken);
+            LoginOutput output = LoginOutput.builder().token(generatedToken).build();
             ctx.json(output);
         } catch(ResourceNotFoundException e) {
             LoginOutput output = new LoginOutput();
             output.setError("Invalid User");
             ctx.status(403).json(output);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
     
     public void validateToken(@NotNull Context ctx) {
-        String authorization = ctx.header("Authorization");
-        if (Strings.isNotEmpty(authorization) && authorization.startsWith(BEARER_PREFIX)) {
-            authorization = authorization.substring(BEARER_PREFIX.length());
-            Token decodedToken = Token.decode(authorization);
-            Map<String, String> payload = decodedToken.getPayload();
-            payload.forEach((k, v) -> {
-                System.out.println("Token key: " + k + ", value: " + v + "::" + v.getClass()) ;
-            });
-            System.out.println("Validation " + "EMS".equals(payload.get("iss")) + " " + !isExpired(payload.get("exp")));
-            if ("EMS".equals(payload.get("iss")) && !isExpired(payload.get("exp"))) {
-                String email = (String) payload.get("email");
-                ctx.attribute("user", userDb.findUserByEmail(email)); //set user info after validate token
-                return;
+        try {
+            String authorization = ctx.header("Authorization");
+            if (Strings.isNotEmpty(authorization) && authorization.startsWith(BEARER_PREFIX)) {
+                authorization = authorization.substring(BEARER_PREFIX.length());
+                Token decodedToken = Token.decode(authorization);
+                Map<String, String> payload = decodedToken.getPayload();
+                payload.forEach((k, v) -> {
+                    System.out.println("Token key: " + k + ", value: " + v + "::" + v.getClass());
+                });
+                System.out.println("Validation " + "EMS".equals(payload.get("iss")) + " " + !isExpired(payload.get("exp")));
+                if ("EMS".equals(payload.get("iss")) && !isExpired(payload.get("exp"))) {
+                    String email = (String) payload.get("email");
+                    ctx.attribute("user", userDb.findUserByEmail(email)); //set user info after validate token
+                    return;
+                }
             }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
         throw new IllegalArgumentException("Invalid Token");
     }

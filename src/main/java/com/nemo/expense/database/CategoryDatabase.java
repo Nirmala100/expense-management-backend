@@ -21,17 +21,16 @@ public class CategoryDatabase {
     }
 
     public List<CategoryModel> getCategories() {
-        FindIterable<CategoryModel> iterable = mongoCollection.find().limit(20);
+        FindIterable<CategoryModel> iterable = mongoCollection.find(eq("userId", null)).limit(20);
         return StreamSupport.stream(iterable.spliterator(),false).collect(Collectors.toList());
     }
 
     public List<CategoryModel> getCategoriesByUserId(String userId) {
-        FindIterable<CategoryModel> iterable = mongoCollection.find(eq("userId",userId));
+        FindIterable<CategoryModel> iterable = mongoCollection.find(eq("userId", userId));
         return StreamSupport.stream(iterable.spliterator(),false).collect(Collectors.toList());
     }
 
     public void addCategory(CategoryModel categoryModel) {
-       // CategoryModel category = mongoCollection.find(eq("name",categoryModel.getName())).first();
         CategoryModel category = mongoCollection.find(
                 and(
                     eq("name", categoryModel.getName()),

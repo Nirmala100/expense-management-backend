@@ -5,31 +5,32 @@ import com.nemo.expense.api.model.CreateCategoryOutput;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
 import com.nemo.expense.database.CategoryDatabase;
-import com.nemo.expense.database.Database;
 import com.nemo.expense.database.model.CategoryModel;
 import com.nemo.expense.database.model.UserModel;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
 
+import javax.inject.Inject;
+import java.util.List;
 import java.util.UUID;
 
 
 public class CategoryController {
 
-    private final CategoryDatabase dbModel;
-    public CategoryController(Database database) {
+    private final CategoryDatabase categoryDb;
 
-        this.dbModel = new CategoryDatabase(database.getCategoryCollection());
+    @Inject
+    public CategoryController(CategoryDatabase categoryDb) {
+        this.categoryDb = categoryDb;
     }
 
     public void listCategories(@NotNull Context ctx) {
         UserModel user = ctx.attribute("user");
-        if (user == null){
-            ctx.json(dbModel.getCategories());
-        } else{
-            ctx.json(dbModel.getCategoriesByUserId(user.getId()));
+        List<CategoryModel> categories = categoryDb.getCategories();
+        if (user != null) {
+            categories.addAll(categoryDb.getCategoriesByUserId(user.getId()));
         }
-
+        ctx.json(categories);
     }
 
 
@@ -42,7 +43,7 @@ public class CategoryController {
         UserModel user = ctx.attribute("user");//get user when set during token validation
         model.setUserId(user.getId());
         try{
-            dbModel.addCategory(model);
+            categoryDb.addCategory(model);
             CreateCategoryOutput output = new CreateCategoryOutput();
             output.setName(input.getName());
             ctx.status(200).json(output);
@@ -57,17 +58,19 @@ public class CategoryController {
     }
 
     public void getOneCategory(Context ctx) {
-        ctx.json(dbModel.getCategoryById(ctx.pathParam("id")));
+        ctx.json(categoryDb.getCategoryById(ctx.pathParam("id")));
     }
 
     public void updateCategory(Context ctx) {
+        UserModel user = ctx.attribute("user");
         CreateCategoryInput toBeUpdated = ctx.bodyAsClass(CreateCategoryInput.class);
         String id = ctx.pathParam("id");
         CategoryModel model = new CategoryModel();
         model.setName(toBeUpdated.getName());
-
+        model.setIcon(toBeUpdated.getIcon());
+        model.setUserId(user.getId());
         try{
-            CategoryModel updatedCategory = dbModel.updateCategory(id, model);
+            CategoryModel updatedCategory = categoryDb.updateCategory(id, model);
             ctx.json(updatedCategory);
         }catch (ResourceNotFoundException e) {
             System.out.println(e.getMessage());
@@ -78,9 +81,8 @@ public class CategoryController {
 
     public void deleteCategory(Context ctx) {
         try {
-            dbModel.deleteCategoryById(ctx.pathParam("id"));
+            categoryDb.deleteCategoryById(ctx.pathParam("id"));
         } catch(ResourceNotFoundException e) {
-            System.out.println(e.getMessage());
             ctx.status(404).result(e.getMessage());
         }
     }

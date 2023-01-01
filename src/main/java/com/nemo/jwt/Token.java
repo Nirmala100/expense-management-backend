@@ -1,7 +1,9 @@
 package com.nemo.jwt;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,10 +16,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Token {
-    private static final Gson GSON = new Gson();
-    private static final Type HASHMAP_TYPE = new TypeToken<Map<String, String>>(){}.getType();
+    private static final ObjectMapper OBJECT_MAPPER;
+    private static final MapType HASHMAP_TYPE;
     private static final String ALGORITHM = "HmacSHA256";
     private static final String SECRET = "123456";
+
+    static {
+        OBJECT_MAPPER = new ObjectMapper();
+        TypeFactory typeFactory = OBJECT_MAPPER.getTypeFactory();
+        HASHMAP_TYPE = typeFactory.constructMapType(HashMap.class, String.class, String.class);
+    }
     private Map<String, String> headers;
     private Map<String, String> payload;
     private String signature;
@@ -50,9 +58,9 @@ public class Token {
         );
     }
 
-    public String encode() {
-        String encodedHeader = base64Encode(GSON.toJson(headers));
-        String encodedPayload = base64Encode(GSON.toJson(payload));
+    public String encode() throws JsonProcessingException {
+        String encodedHeader = base64Encode(OBJECT_MAPPER.writeValueAsString(headers));
+        String encodedPayload = base64Encode(OBJECT_MAPPER.writeValueAsString(payload));
         signature = hmacWithJava(ALGORITHM, encodedHeader+"."+encodedPayload, SECRET);
         return String.format("%s.%s.%s",
                 encodedHeader,
@@ -69,7 +77,7 @@ public class Token {
                 '}';
     }
 
-    public static Token decode(String encodedToken) {
+    public static Token decode(String encodedToken) throws JsonProcessingException {
         String[] split = encodedToken.split("\\.");
         if (split.length != 3) {
             throw new IllegalArgumentException(String.format("Invalid JWT: %s", encodedToken));
@@ -79,8 +87,8 @@ public class Token {
             throw new IllegalArgumentException(String.format("Invalid JWT signature: %s. expecting: %s", split[2], signature));
         }
         Token token = new Token();
-        token.headers = GSON.fromJson(base64Decode(split[0]), HASHMAP_TYPE);
-        token.payload = GSON.fromJson(base64Decode(split[1]), HASHMAP_TYPE);
+        token.headers = OBJECT_MAPPER.readValue(base64Decode(split[0]), HASHMAP_TYPE);
+        token.payload = OBJECT_MAPPER.readValue(base64Decode(split[1]), HASHMAP_TYPE);
         token.signature = split[2];
         return token;
     }
