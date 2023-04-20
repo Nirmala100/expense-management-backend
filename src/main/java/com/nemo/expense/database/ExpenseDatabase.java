@@ -72,7 +72,7 @@ public class ExpenseDatabase {
     }*/
 
     public List<ExpenseModel> getExpenseByFiltering(ExpenseFilter filter) {
-        FindIterable<ExpenseModel> iterable = mongoCollection.find(filter.getFilter()).limit(5);
+        FindIterable<ExpenseModel> iterable = mongoCollection.find(filter.getFilter()).limit(500);
         return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
     }
 

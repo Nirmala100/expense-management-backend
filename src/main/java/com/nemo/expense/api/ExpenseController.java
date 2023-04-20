@@ -12,6 +12,7 @@ import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.UUID;
 
 public class ExpenseController {
@@ -29,6 +30,9 @@ public class ExpenseController {
         System.out.println(expense.getName());
         System.out.println(expense.getPrice());
         System.out.println(expense.getDate());
+        if (expense.getCategoryName() == null || expense.getCategoryName().trim().length() == 0) {
+            expense.setCategoryName("Other");
+        }
 
         ExpenseModel model = new ExpenseModel();
         model.setId(UUID.randomUUID().toString());
@@ -63,8 +67,8 @@ public class ExpenseController {
             Long toDate = Long.parseLong(ctx.queryParam("toDate"));
             filter = filter.withDateRange(fromDate, toDate);
         }
-
-        ctx.json(dbModel.getExpenseByFiltering(filter));
+        List<ExpenseModel> expenses = dbModel.getExpenseByFiltering(filter);
+        ctx.json(expenses);
     }
 
 /*    public void listExpensesByCategory(@NotNull Context ctx) {

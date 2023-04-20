@@ -18,6 +18,7 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 @Module
@@ -25,13 +26,23 @@ public class MongoDBModule {
 
     @Provides
     @Singleton
-    public MongoClient provideMongoClient() {
+    @Named("ENVIRONMENT")
+    public String getEnvironment() {
+        String env = System.getenv("ENVIRONMENT");
+        return env == null ? "development" : env;
+    }
+
+    @Provides
+    @Singleton
+    public MongoClient provideMongoClient(@Named("ENVIRONMENT") String environment) {
         CodecRegistry pojoCodecRegistry = CodecRegistries
                 .fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
                 pojoCodecRegistry);
-        ConnectionString connectionString = new ConnectionString(Constants.MONGO_CONNECTION_STRING);
+        ConnectionString connectionString = "production".equalsIgnoreCase(environment) ?
+                new ConnectionString(Constants.MONGO_CONNECTION_STRING_PROD) :
+                new ConnectionString(Constants.MONGO_CONNECTION_STRING_DEVELOPMENT);
         MongoClientSettings clientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
                 .codecRegistry(codecRegistry)

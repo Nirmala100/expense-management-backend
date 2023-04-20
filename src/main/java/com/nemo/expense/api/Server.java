@@ -9,6 +9,7 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.http.ContentType;
 import io.javalin.json.JavalinJackson;
 import io.javalin.security.RouteRole;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +95,7 @@ public class Server {
     private void configureAccessControl(JavalinConfig config) {
         config.accessManager((handler, ctx, routeRoles) -> {
             log.info("Handler: {}, Context: {}, RouteRoles: {}", handler.getClass(), ctx, routeRoles);
-            if (routeRoles.contains(Role.PER_USER)) {
+            if (routeRoles.contains(Role.PER_USER) || Strings.isNotEmpty(ctx.header("Authorization"))) {
                 try {
                     loginController.validateToken(ctx);
                 } catch (IllegalArgumentException e) {

@@ -12,6 +12,7 @@ import com.nemo.jwt.Token;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -30,11 +31,14 @@ public class LoginController {
 
     public void createUser(@NotNull Context ctx) {
         UserInput input = ctx.bodyAsClass(UserInput.class);
+        String password = input.getPassword();
+        String salt = BCrypt.gensalt();
+        String hashedPassword = BCrypt.hashpw(password, salt);
         UserModel userModel = new UserModel(
                 UUID.randomUUID().toString(),
                 input.getName(),
                 input.getEmail(),
-                input.getPassword());
+                hashedPassword);
         try{
             userDb.createUser(userModel);
             System.out.println("Didn't throw");
@@ -58,7 +62,8 @@ public class LoginController {
         try{
             UserModel user = userDb.findUserByEmail(input.getEmail());
             System.out.println("Logging in user " + user);
-            if (!user.getPassHashed().equals(input.getPassword())) {
+           // if (!user.getPassHashed().equals(input.getPassword())) {
+            if (!BCrypt.checkpw(input.getPassword(),user.getPassHashed())) {
                 // return error to caller
                 LoginOutput output = new LoginOutput();
                 output.setError("Password does not match.");
@@ -105,6 +110,8 @@ public class LoginController {
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        } catch (ResourceNotFoundException e) {
+            System.out.println("User not found");
         }
         throw new IllegalArgumentException("Invalid Token");
     }

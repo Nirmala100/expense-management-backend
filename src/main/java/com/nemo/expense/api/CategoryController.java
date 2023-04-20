@@ -29,7 +29,9 @@ public class CategoryController {
         List<CategoryModel> categories = categoryDb.getCategories();
         if (user != null) {
             categories.addAll(categoryDb.getCategoriesByUserId(user.getId()));
+            System.out.println("Fetching categories for user: " + user.getId() + " Received " + categoryDb.getCategoriesByUserId(user.getId()));
         }
+        System.out.println("Returning categories: " + categories);
         ctx.json(categories);
     }
 
@@ -40,15 +42,16 @@ public class CategoryController {
         CategoryModel model = new CategoryModel();
         model.setId(UUID.randomUUID().toString());
         model.setName(input.getName());
+        model.setIcon(input.getIcon());
         UserModel user = ctx.attribute("user");//get user when set during token validation
         model.setUserId(user.getId());
+        System.out.println("Creating new category: " + model);
         try{
             categoryDb.addCategory(model);
             CreateCategoryOutput output = new CreateCategoryOutput();
             output.setName(input.getName());
             ctx.status(200).json(output);
-        }
-        catch(AlreadyExistException e) {
+        } catch (AlreadyExistException e) {
             CreateCategoryOutput output = new CreateCategoryOutput();
             output.setError("Category already exist");
             ctx.status(409).json(output);
@@ -70,6 +73,7 @@ public class CategoryController {
         model.setIcon(toBeUpdated.getIcon());
         model.setUserId(user.getId());
         try{
+            checkOwnership(user, id);
             CategoryModel updatedCategory = categoryDb.updateCategory(id, model);
             ctx.json(updatedCategory);
         }catch (ResourceNotFoundException e) {
@@ -80,12 +84,22 @@ public class CategoryController {
     }
 
     public void deleteCategory(Context ctx) {
+        UserModel user = ctx.attribute("user");
+        String categoryId = ctx.pathParam("id");
         try {
-            categoryDb.deleteCategoryById(ctx.pathParam("id"));
+            checkOwnership(user, categoryId);
+            categoryDb.deleteCategoryById(categoryId);
         } catch(ResourceNotFoundException e) {
             ctx.status(404).result(e.getMessage());
         }
     }
 
+    private void checkOwnership(UserModel user, String categoryId) {
+        // If userId matches then return true
+        CategoryModel existing = categoryDb.getCategoryById(categoryId);
+        if (!user.getId().equals(existing.getUserId())) {
+            throw new ResourceNotFoundException(String.format("Category %s not found for user %s", categoryId, user.getId()));
+        }
+    }
 
 }

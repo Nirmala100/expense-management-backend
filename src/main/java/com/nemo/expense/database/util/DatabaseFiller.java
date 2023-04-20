@@ -35,6 +35,7 @@ public class DatabaseFiller {
         List<CategoryModel> defaultCategories = new ArrayList<>();
         defaultCategories.addAll(
                 Arrays.asList(
+                    CategoryModel.builder().icon("attach_money").name("Other").build(),
                     CategoryModel.builder().icon("shopping_basket").name("Grocery").build(),
                     CategoryModel.builder().icon("restaurant_menu").name("Restaurant").build(),
                     CategoryModel.builder().icon("local_gas_station").name("Petrol").build(),

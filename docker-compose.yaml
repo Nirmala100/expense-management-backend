@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:4.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: expenser
+      MONGO_INITDB_ROOT_PASSWORD: dispenser
+    volumes:
+      - /home/ubuntu/expense-management-system/mongodata:/data/db
+  javalin:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "6002:8081"

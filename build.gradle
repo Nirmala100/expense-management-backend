@@ -1,9 +1,11 @@
 plugins {
-    id 'java-library'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-group 'org.example'
+group 'com.nemo.expense'
 version '1.0-SNAPSHOT'
+mainClassName = 'com.nemo.expense.Main'
 sourceCompatibility = 11
 targetCompatibility = 11
 
@@ -37,6 +39,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.10.0'
     // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     testImplementation 'org.mockito:mockito-junit-jupiter:4.10.0'
+
+    // https://mvnrepository.com/artifact/org.mindrot/jbcrypt
+    implementation group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
 }
 
 test {
