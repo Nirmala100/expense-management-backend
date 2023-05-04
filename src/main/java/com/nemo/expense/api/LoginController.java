@@ -1,12 +1,14 @@
 package com.nemo.expense.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nemo.expense.api.model.CreateExpenseInput;
 import com.nemo.expense.api.model.LoginOutput;
 import com.nemo.expense.api.model.UserInput;
 import com.nemo.expense.api.model.UserOutput;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
 import com.nemo.expense.database.UserDatabase;
+import com.nemo.expense.database.model.ExpenseModel;
 import com.nemo.expense.database.model.UserModel;
 import com.nemo.jwt.Token;
 import io.javalin.http.Context;
@@ -130,4 +132,23 @@ public class LoginController {
         Instant now = Instant.now();
         return now.toEpochMilli() > expiration;
     }
+
+    public void updateUser(@NotNull Context ctx) {
+       //get id from the frontend i.e. from context
+        UserModel user = ctx.attribute("user");
+        UserInput toBeUpdated = ctx.bodyAsClass(UserInput.class);
+        System.out.println("Updating userId: " + user.getId());
+        UserModel model = new UserModel();
+        String salt = BCrypt.gensalt();
+        String hashedPassword = BCrypt.hashpw(toBeUpdated.getPassword(), salt);
+        model.setPassHashed(hashedPassword);
+        try {
+            UserModel updatedUser = userDb.updateUser(user.getId(), model);
+            ctx.json(updatedUser);
+        } catch (ResourceNotFoundException e) {
+            System.out.println(e.getMessage());
+            ctx.status(404).result(e.getMessage());
+        }
+    }
+
 }

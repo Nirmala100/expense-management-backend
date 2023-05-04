@@ -47,8 +47,9 @@ public class Server {
         });
 
         this.application.post("login", loginController::login, Role.ANYONE);
+        this.application.post("user/update", loginController::updateUser, Role.PER_USER);
         this.application.routes(() -> path("user", () -> {
-            post(loginController::createUser, Role.PER_USER);
+            post(loginController::createUser, Role.ANYONE);
             get(loginController::getUser, Role.PER_USER);
         }));
 

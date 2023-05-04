@@ -3,6 +3,7 @@ package com.nemo.expense.database;
 import com.mongodb.client.MongoCollection;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
+import com.nemo.expense.database.model.ExpenseModel;
 import com.nemo.expense.database.model.UserModel;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -33,6 +34,23 @@ public class UserDatabase {
                 throw new AlreadyExistException(String.format("User already exist"));
             }
 
+    }
+
+    public UserModel getUserById(String id) {
+        UserModel user = mongoCollection.find(eq("_id", id)).first();
+        if (user == null) {
+            throw new ResourceNotFoundException(String.format("UserId: %s not found", id));
+        }
+        return user;
+    }
+
+    public UserModel updateUser(String id, UserModel updated) {
+        UserModel oldUser = mongoCollection.findOneAndReplace(eq("_id", id), updated);
+        if (oldUser != null) {
+            return getUserById(id);
+        } else {
+            throw new ResourceNotFoundException(String.format("ExpenseId: %s not found", id));
+        }
     }
 
     public void deleteUser(String email) {
