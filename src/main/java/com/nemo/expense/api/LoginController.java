@@ -53,6 +53,15 @@ public class LoginController {
 
     }
 
+    public void getUser(@NotNull Context ctx) {
+        UserModel user = ctx.attribute("user");
+        UserOutput output = new UserOutput();
+        output.setEmail(user.getEmail());
+        output.setPassword(user.getPassHashed());
+        output.setName(user.getName());
+        ctx.status(200).json(output);
+    }
+
 
     public void login(@NotNull Context ctx) {
         UserInput input = ctx.bodyAsClass(UserInput.class);

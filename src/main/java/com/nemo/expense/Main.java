@@ -40,7 +40,7 @@ public class Main {
     }
 
     private static void dummyExpenses(Components component) {
-        String userId = "68648de8-cc4e-468f-b76a-be01b71da77c";
+        String userId = "9917a938-8bc0-43b7-ad22-afc6976095ba";
         LocalDate date = LocalDate.now();
         Random rand = new Random();
         int totalDays = 300;
