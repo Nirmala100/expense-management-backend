@@ -79,6 +79,7 @@ public class ExpenseController {
     }*/
 
     public void updateExpense(@NotNull Context ctx) {
+        UserModel user = ctx.attribute("user");
         String id = ctx.pathParam("id");
         CreateExpenseInput toBeUpdated = ctx.bodyAsClass(CreateExpenseInput.class);
         System.out.println("Updating expenseId: " + id);
@@ -87,6 +88,8 @@ public class ExpenseController {
         model.setName(toBeUpdated.getName());
         model.setPrice(toBeUpdated.getPrice());
         model.setCategoryName(toBeUpdated.getCategoryName());
+        model.setUserId(user.getId());
+        model.setDate(toBeUpdated.getDate());
         try {
             ExpenseModel updatedExpense = dbModel.updateExpense(id, model);
             ctx.json(updatedExpense);
