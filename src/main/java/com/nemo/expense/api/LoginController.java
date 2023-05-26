@@ -142,6 +142,7 @@ public class LoginController {
         String salt = BCrypt.gensalt();
         String hashedPassword = BCrypt.hashpw(toBeUpdated.getPassword(), salt);
         model.setPassHashed(hashedPassword);
+
         try {
             UserModel updatedUser = userDb.updateUser(user.getId(), model);
             ctx.json(updatedUser);

@@ -3,8 +3,11 @@ package com.nemo.expense.database;
 import com.mongodb.client.MongoCollection;
 import com.nemo.expense.api.model.exceptions.AlreadyExistException;
 import com.nemo.expense.api.model.exceptions.ResourceNotFoundException;
+import com.nemo.expense.database.model.CategoryModel;
 import com.nemo.expense.database.model.ExpenseModel;
 import com.nemo.expense.database.model.UserModel;
+import org.apache.logging.log4j.util.Strings;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -45,12 +48,22 @@ public class UserDatabase {
     }
 
     public UserModel updateUser(String id, UserModel updated) {
-        UserModel oldUser = mongoCollection.findOneAndReplace(eq("_id", id), updated);
-        if (oldUser != null) {
-            return getUserById(id);
-        } else {
-            throw new ResourceNotFoundException(String.format("ExpenseId: %s not found", id));
+        UserModel existingUser = getUserById(id);
+        if (existingUser != null) {
+            //check if user has sent password or not
+            if (Strings.isNotEmpty(updated.getEmail())) {
+                existingUser.setEmail(updated.getEmail());
+            }
+            if (Strings.isNotEmpty(updated.getPassHashed())) {
+                existingUser.setPassHashed(updated.getPassHashed());
+            }
+            existingUser = mongoCollection.findOneAndReplace(eq("_id", id), existingUser);
+
+        }else {
+            throw new ResourceNotFoundException(String.format("UserId: %s not found", id));
         }
+
+        return existingUser;
     }
 
     public void deleteUser(String email) {
