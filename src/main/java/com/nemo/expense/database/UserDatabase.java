@@ -7,7 +7,7 @@ import com.nemo.expense.database.model.CategoryModel;
 import com.nemo.expense.database.model.ExpenseModel;
 import com.nemo.expense.database.model.UserModel;
 import org.apache.logging.log4j.util.Strings;
-import org.mindrot.jbcrypt.BCrypt;
+//import org.mindrot.jbcrypt.BCrypt;
 
 import static com.mongodb.client.model.Filters.eq;
 

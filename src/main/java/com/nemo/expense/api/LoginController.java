@@ -1,5 +1,6 @@
 package com.nemo.expense.api;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nemo.expense.api.model.CreateExpenseInput;
 import com.nemo.expense.api.model.LoginOutput;
@@ -14,7 +15,7 @@ import com.nemo.jwt.Token;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
-import org.mindrot.jbcrypt.BCrypt;
+//import org.mindrot.jbcrypt.BCrypt;
 
 import javax.inject.Inject;
 import java.time.Instant;
@@ -34,8 +35,13 @@ public class LoginController {
     public void createUser(@NotNull Context ctx) {
         UserInput input = ctx.bodyAsClass(UserInput.class);
         String password = input.getPassword();
-        String salt = BCrypt.gensalt();
-        String hashedPassword = BCrypt.hashpw(password, salt);
+
+        String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+        // $2a$12$US00g/uMhoSBm.HiuieBjeMtoN69SN.GE25fCpldebzkryUyopws6
+
+
+       // String salt = BCrypt.gensalt();
+       // String hashedPassword = BCrypt.hashpw(password, salt);
         UserModel userModel = new UserModel(
                 UUID.randomUUID().toString(),
                 input.getName(),
@@ -74,8 +80,16 @@ public class LoginController {
             UserModel user = userDb.findUserByEmail(input.getEmail());
             System.out.println("Logging in user " + user);
            // if (!user.getPassHashed().equals(input.getPassword())) {
-            if (!BCrypt.checkpw(input.getPassword(),user.getPassHashed())) {
-                // return error to caller
+//            if (!BCrypt.checkpw(input.getPassword(),user.getPassHashed())) {
+//                // return error to caller
+//                LoginOutput output = new LoginOutput();
+//                output.setError("Password does not match.");
+//                ctx.status(403).json(output);
+//                return;
+//            }
+            BCrypt.Result result = BCrypt.verifyer().verify(input.getPassword().toCharArray(), user.getPassHashed());
+            // result.verified == true
+            if (result.verified == false) {
                 LoginOutput output = new LoginOutput();
                 output.setError("Password does not match.");
                 ctx.status(403).json(output);
@@ -139,8 +153,9 @@ public class LoginController {
         UserInput toBeUpdated = ctx.bodyAsClass(UserInput.class);
         System.out.println("Updating userId: " + user.getId());
         UserModel model = new UserModel();
-        String salt = BCrypt.gensalt();
-        String hashedPassword = BCrypt.hashpw(toBeUpdated.getPassword(), salt);
+        //String salt = BCrypt.gensalt();
+        //String hashedPassword = BCrypt.hashpw(toBeUpdated.getPassword(), salt);
+        String hashedPassword = BCrypt.withDefaults().hashToString(12, toBeUpdated.getPassword().toCharArray());
         model.setPassHashed(hashedPassword);
 
         try {
